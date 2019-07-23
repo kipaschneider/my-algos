@@ -1,3 +1,5 @@
+import hashlib
+import cProfile
 
 
 def get_key_diffs(s1, s2):
@@ -8,7 +10,8 @@ def get_key_diffs(s1, s2):
     return same_keys, keys_only_d1, keys_only_d2
 
 
-def compare_list_of_dicts(d1, d2, d1_name, d2_name, same_keys, result):
+def compare_list_of_dicts(d1, d2, d1_name, d2_name, same_keys):
+    result = {}
     for main_k in same_keys:
         val1 = {k: i[k] for i in d1[main_k] for k in i}
         val2 = {k: i[k] for i in d2[main_k] for k in i}
@@ -27,9 +30,13 @@ def compare_list_of_dicts(d1, d2, d1_name, d2_name, same_keys, result):
             elif k in keys_only_d2:
                 result[new_key] = {d1_name: 'null', d2_name: val2[k]}
 
+    return result
 
-def compare_nested_dicts(d1, d2, result, d1_name='dict1', d2_name='dict2'):
+
+def compare_nested_dicts(d1, d2, d1_name, d2_name):
     """Takes two dictionaries and return a dictionary of differences"""
+
+    result = {}
 
     s1 = set(d1.keys())
     s2 = set(d2.keys())
@@ -48,7 +55,7 @@ def compare_nested_dicts(d1, d2, result, d1_name='dict1', d2_name='dict2'):
                 new_key = f"{k}.{k1}"
                 result[new_key] = {d2_name: "null", d1_name: v}
 
-    compare_list_of_dicts(d1, d2, d1_name, d2_name, same_keys, result)
+    result.update(compare_list_of_dicts(d1, d2, d1_name, d2_name, same_keys))
 
     return result
 
@@ -57,7 +64,11 @@ if __name__ == "__main__":
     # dict_1 = {"key1": "val1", "key2": "val2", "key4": "val4", "key6": [{"k10": "v13"}, {"k11": "v11"}]}
     # dict_2 = {"key1": "val1", "key2": "val2", "key4": "val4", "key6": [{"k10": "v5"}]}
     #
-    dict_1 = {"Tom":[{"subject-1":"english"}],"Harry":[{"subject-1":"english"},{"subject-2":"maths"}, {"subject-3":"gym"}]}
-    dict_2 = {"Tom":[{"subject-1":"english"}],"Harry":[{"subject-1":"english"},{"subject-2":"science"}],"Reggie":[{"subject-1":"maths"}]}
-    result = {}
-    print(compare_nested_dicts(dict_1, dict_2, result))
+    dict_1 = {"Tom": [{"subject-1": "english"}],
+              "Harry": [{"subject-1": "english"}, {"subject-2": "maths"}, {"subject-3": "gym"}]}
+    dict_2 = {"Tom": [{"subject-1": "english"}], "Harry": [{"subject-1": "english"}, {"subject-2": "science"}],
+              "Reggie": [{"subject-1": "maths"}]}
+
+    #cProfile.run("compare_nested_dicts(dict_1, dict_2, d1_name='dict1', d2_name='dict2')")
+
+    print(compare_nested_dicts(dict_1, dict_2, d1_name='dict1', d2_name='dict2'))
